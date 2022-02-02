@@ -1,0 +1,4 @@
+# Build cruft
+/.gradle/
+/gradle/
+/build/

@@ -1,0 +1,29 @@
+<idea-plugin>
+    <id>org.example.EolianLanguageSupport</id>
+    <name>Eolian Language Support</name>
+    <!-- TODO actually set up this email! -->
+    <vendor email="support+eolian@jamoo.dev" url="https://github.com/freeone3000/EolianLanguageServer">Jasmine Moore</vendor>
+
+    <description><![CDATA[
+    Adds support for the Eolian language, as used in Enlightenment.
+    This is based off of the <a href="https://www.enlightenment.org/contrib/docs/eo.md">Eolian Language Specification</a>,
+    as of EFL version 1.23 (Enlightenment version 24.1).
+    ]]></description>
+
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="Eolian"
+                  implementationClass="dev.jamoo.eolian.language.EolianFileType"
+                  fieldName="INSTANCE"
+                  language="Eolian"
+                  extensions="eo"
+        />
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+</idea-plugin>
