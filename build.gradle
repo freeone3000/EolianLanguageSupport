@@ -26,7 +26,6 @@ intellij {
 
 // add in grammarKit for tokens/parser/lexer
 sourceSets.main.java.srcDirs 'src/main/gen'
-sourceSets.main.java.srcDirs 'gen/' // and the top-level generated items specifically
 
 grammarKit {
 }

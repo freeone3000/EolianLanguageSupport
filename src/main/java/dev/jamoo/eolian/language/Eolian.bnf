@@ -1,3 +1,6 @@
+{
+    parserImports=["static dev.jamoo.eolian.language.ParserUtilClass.*"]
+}
 throwaway ::= ""
 
 e_value_character ::= e_letter | e_digit | '_'
@@ -9,17 +12,17 @@ chunk   ::= [ '#version' <e_integer> ] { <unit> }
 e_integer ::= e_digit*
 value ::= e_value_character*
 name_ns ::= value { '.' value }
-name    ::= value
+e_name    ::= value
 comment ::= '[[' any character ']]'
 
-c_name_qual ::= '@c_name' '(' name ')'
+c_name_qual ::= '@c_name' '(' e_name ')'
 
 
 unit ::= 'abstract'  class_hdr '{' [ comment ] { class_body       } '}'
      | 'class'     class_hdr '{' [ comment ] { class_body       } '}'
      | 'mixin'     mixin_hdr '{' [ comment ] { class_body_mixin } '}'
      | 'interface' iface_hdr '{' [ comment ] { class_body_iface } '}'
-     | ('import' | 'parse') name ';'
+     | ('import' | 'parse') e_name ';'
      | 'type' { type_struct_attrs } name_ns ':' (type | struct | e_enum) ';'
          [ comment ]
      | 'function' { '@extern' | '@beta' | c_name_qual } name_ns '{'
@@ -40,17 +43,17 @@ type ::= 'const' '(' type     ')'
      | type_complex_view '<' type '>'
      | name_ns
 
-type_struct_attrs ::= '@extern' | '@beta' | c_name_qual | '@free' '(' name ')'
+type_struct_attrs ::= '@extern' | '@beta' | c_name_qual | '@free' '(' e_name ')'
 
 struct ::= 'struct' { type_struct_attrs } name_ns (';' | '{' [ comment ]
          { struct_field } '}')
 
-struct_field ::= name ':' type { '@by_ref' | '@move' } ';' [ comment ]
+struct_field ::= e_name ':' type { '@by_ref' | '@move' } ';' [ comment ]
 
 e_enum ::= 'enum' { '@extern' | '@beta' | c_name_qual } name_ns '{'
        [ comment ] enum_field { ',' [ comment ] enum_field } [ comment ] '}'
 
-enum_field ::= name [ '=' expr ]
+enum_field ::= e_name [ '=' expr ]
 
 
 expr ::= 'true' | 'false' | 'null' | number | string | character
@@ -124,26 +127,26 @@ impl ::= impl_common | [ impl_quals ] [ '.' ] name_ns
        ( '{' [ 'get' impl_prop ] [ 'set' impl_prop ] '}' | ';' [ comment ] )
 
 
-event ::= name { ',' name } {
+event ::= e_name { ',' e_name } {
         '@private' | '@protected' | '@beta' | '@hot' | '@restart' }
         [ ':' type ] ';'
 
 
-part ::= name [ '@beta' ] ':' name_ns ';' [ comment ]
+part ::= e_name [ '@beta' ] ':' name_ns ';' [ comment ]
 
 
 
 
 
 
-method ::= name { '@protected' | '@const' | '@static' | '@beta' | '@pure_virtual' }
+method ::= e_name { '@protected' | '@const' | '@static' | '@beta' | '@pure_virtual' }
              '{' [ comment ] { method_body } '}'
 
 
 method_body ::= return | 'params' '{' { param } '}'
 
 
-property ::= '@property' name { '@protected' | '@static' | '@pure_virtual' | '@beta' } '{' { property_body } '}'
+property ::= '@property' e_name { '@protected' | '@static' | '@pure_virtual' | '@beta' } '{' { property_body } '}'
 
 
 property_body ::= 'get' { '@pure_virtual' | '@protected' } '{' [ comment ] { return | 'keys' '{' { param_nodir } '}' | 'values' '{' { param_nodir } '}' } '}'
@@ -152,7 +155,7 @@ property_body ::= 'get' { '@pure_virtual' | '@protected' } '{' [ comment ] { ret
               | 'values' '{' { param_nodir } '}'
 
 
-param_nodir ::= name ':' type [ '(' expr ')' ] [ {  '@by_ref' | '@move' | '@optional' } ]
+param_nodir ::= e_name ':' type [ '(' expr ')' ] [ {  '@by_ref' | '@move' | '@optional' } ]
               ';' [ comment ]
 
 
