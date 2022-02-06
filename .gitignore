@@ -2,3 +2,6 @@
 /.gradle/
 /gradle/
 /build/
+
+# Generated files
+/src/main/gen/
