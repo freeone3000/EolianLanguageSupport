@@ -1,187 +1,165 @@
-  // Copied from https://www.enlightenment.org/contrib/docs/eo.md#Eolian_File_Format
-  // Modified to fit with the Grammar and Parser rules at https://plugins.jetbrains.com/docs/intellij/grammar-and-parser.html#generate-a-parser,
-  // which understands BNF but not EBNF
+throwaway ::= ""
 
-  // (* Base definitions *)
+e_value_character ::= e_letter | e_digit | '_'
+e_letter          ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+e_digit           ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 
-  chunk   ::= [ '#version' integer ] { unit }
-  external integer ::= isInteger // 0-9, easier in code
-  external value_character ::= isValueCharacter // a-zA-Z0-9*
-  value ::= value_character*
-  name_ns ::= value { '.' value }
-  name    ::= value
-  comment ::= '[[' any character ']]'
 
-  c_name_qual ::= '@c_name' '(' name ')'
+chunk   ::= [ '#version' <e_integer> ] { <unit> }
+e_integer ::= e_digit*
+value ::= e_value_character*
+name_ns ::= value { '.' value }
+name    ::= value
+comment ::= '[[' any character ']]'
 
-//  (*
-//   * An unit is a basic unit of parsing in Eolian, aka all toplevel elements
-//   * (that includes different types of classes, named structs and typedefs)
-//   *)
+c_name_qual ::= '@c_name' '(' name ')'
 
-  unit ::= 'abstract'  class_hdr '{' [ comment ] { class_body       } '}'
-         | 'class'     class_hdr '{' [ comment ] { class_body       } '}'
-         | 'mixin'     mixin_hdr '{' [ comment ] { class_body_mixin } '}'
-         | 'interface' iface_hdr '{' [ comment ] { class_body_iface } '}'
-         | ('import' | 'parse') name ';'
-         | 'type' { type_struct_attrs } name_ns ':' (type | struct | enum) ';'
-             [ comment ]
-         | 'function' { '@extern' | '@beta' | c_name_qual } name_ns '{'
-             [ comment ] { method_body } '}'
-         | 'const' { '@extern' | '@beta' | c_name_qual } name_ns ':'
-             type '=' expr ';' [ comment ]
-         | 'error' { '@extern' | '@beta' | c_name_qual } name_ns '='
-            string ';' [ comment ]
-         | struct
-         | enum
 
-//  (*
-//   * Types - they don't mention builtins or where void is allowed (not grammar)
-//   *)
+unit ::= 'abstract'  class_hdr '{' [ comment ] { class_body       } '}'
+     | 'class'     class_hdr '{' [ comment ] { class_body       } '}'
+     | 'mixin'     mixin_hdr '{' [ comment ] { class_body_mixin } '}'
+     | 'interface' iface_hdr '{' [ comment ] { class_body_iface } '}'
+     | ('import' | 'parse') name ';'
+     | 'type' { type_struct_attrs } name_ns ':' (type | struct | e_enum) ';'
+         [ comment ]
+     | 'function' { '@extern' | '@beta' | c_name_qual } name_ns '{'
+         [ comment ] { method_body } '}'
+     | 'const' { '@extern' | '@beta' | c_name_qual } name_ns ':'
+         type '=' expr ';' [ comment ]
+     | 'error' { '@extern' | '@beta' | c_name_qual } name_ns '='
+        string ';' [ comment ]
+     | struct
+     | e_enum
 
-  type_complex_owning ::= 'array' | 'list' | 'future'
-  type_complex_view   ::= 'accesssor' | 'iterator' | 'slice' | 'rw_slice'
+type_complex_owning ::= 'array' | 'list' | 'future'
+type_complex_view   ::= 'accesssor' | 'iterator' | 'slice' | 'rw_slice'
 
-//  (* standard type definition - without named structs *)
-  type ::= 'const' '(' type     ')'
-         | error '(' name_ns { ',' name_ns } ')'
-         | type_complex_owning '<' type [ '@move' ] '>'
-         | type_complex_view '<' type '>'
-         | name_ns
+type ::= 'const' '(' type     ')'
+     | error '(' name_ns { ',' name_ns } ')'
+     | type_complex_owning '<' type [ '@move' ] '>'
+     | type_complex_view '<' type '>'
+     | name_ns
 
-//  (* attributes for structs and typedefs *)
-  type_struct_attrs ::= '@extern' | '@beta' | c_name_qual | '@free' '(' name ')'
+type_struct_attrs ::= '@extern' | '@beta' | c_name_qual | '@free' '(' name ')'
 
-//  (* named struct definition *)
-  struct ::= 'struct' { type_struct_attrs } name_ns (';' | '{' [ comment ]
-             { struct_field } '}')
+struct ::= 'struct' { type_struct_attrs } name_ns (';' | '{' [ comment ]
+         { struct_field } '}')
 
-//  (* struct field definition *)
-  struct_field ::= name ':' type { '@by_ref' | '@move' } ';' [ comment ]
+struct_field ::= name ':' type { '@by_ref' | '@move' } ';' [ comment ]
 
-//  (* enum definition *)
-  enum ::= 'enum' { '@extern' | '@beta' | c_name_qual } name_ns '{'
-           [ comment ] enum_field { ',' [ comment ] enum_field } [ comment ] '}'
+e_enum ::= 'enum' { '@extern' | '@beta' | c_name_qual } name_ns '{'
+       [ comment ] enum_field { ',' [ comment ] enum_field } [ comment ] '}'
 
-//  (* enum field definition *)
-  enum_field ::= name [ '=' expr ]
+enum_field ::= name [ '=' expr ]
 
-//  (*
-//   * Expressions - we don't handle operator precedences here
-//   *)
 
-  expr ::= 'true' | 'false' | 'null' | number | string | character
-         | expr binop expr | unop expr | name_ns
+expr ::= 'true' | 'false' | 'null' | number | string | character
+     | expr binop expr | unop expr | name_ns
 
-    // these were listed as "described elsewhere", so will have their definitions elsewhere as well
-  external number ::= isNumberLiteral
+external number ::= isNumberLiteral
 
-  external string ::= isStringLiteral
+external string ::= isStringLiteral
 
-  external character ::= isCharacterLiteral
+external character ::= isCharacterLiteral
 
-  external binop ::= isBinaryOperator
+external binop ::= isBinaryOperator
 
-  external unop ::= isUnaryOperator
+external unop ::= isUnaryOperator
 
-//  (*
-//   * Classes - everything related to class grammar
-//   *)
 
-//  (* class header - name + optional inherits *)
 
-  class_hdr ::= { '@beta' | c_name_qual }
-                name_ns [ 'extends' name_ns ]
-                [ 'implements' name_ns { ',' name_ns } ]
-                [ 'composites' name_ns { ',' name_ns } ]
 
-  mixin_hdr ::= { '@beta' | c_name_qual }
-                name_ns [ 'requires' name_ns { ',' name_ns } ]
-                [ 'extends' name_ns { ',' name_ns } ]
-                [ 'composites' name_ns { ',' name_ns } ]
+class_hdr ::= { '@beta' | c_name_qual }
+            name_ns [ 'extends' name_ns ]
+            [ 'implements' name_ns { ',' name_ns } ]
+            [ 'composites' name_ns { ',' name_ns } ]
 
-  iface_hdr ::= { '@beta' | c_name_qual }
-                name_ns [ 'extends' name_ns { ',' name_ns } ]
+mixin_hdr ::= { '@beta' | c_name_qual }
+            name_ns [ 'requires' name_ns { ',' name_ns } ]
+            [ 'extends' name_ns { ',' name_ns } ]
+            [ 'composites' name_ns { ',' name_ns } ]
 
-//  (* common members shared by different class types *)
-  class_body_common ::= 'event_c_prefix' ':' value ';'
-                      | 'c_prefix'       ':' value ';'
-                      | 'methods'       '{' { method | property } '}'
-                      | 'events'        '{' { event             } '}'
-                      | 'parts'         '{' { part              } '}'
+iface_hdr ::= { '@beta' | c_name_qual }
+            name_ns [ 'extends' name_ns { ',' name_ns } ]
 
-//  (* data member - not used for interfaces, used elsewhere *)
-  class_body_data ::= 'data' ':' value ';'
+class_body_common ::= 'event_c_prefix' ':' value ';'
+                  | 'c_prefix'       ':' value ';'
+                  | 'methods'       '{' { method | property } '}'
+                  | 'events'        '{' { event             } '}'
+                  | 'parts'         '{' { part              } '}'
 
-//  (* implements - the full form is allowed in everything but interfaces *)
-  class_body_impls ::= 'implements' '{' { impl } '}'
 
-//  (* constructors - for class/abstract *)
-  class_body_ctors ::= 'constructors' '{' { [ '.' ] name_ns [ '@optional' ] ';' } '}'
+class_body_data ::= 'data' ':' value ';'
 
-//  (* members of regular classes, aka not interfaces or mixins *)
-  class_body ::= class_body_common
-               | class_body_data
-               | class_body_impls
-               | class_body_ctors
 
-//  (* members of interfaces - includes custom impl restrictions *)
-  class_body_iface ::= class_body_common
-                     | 'implements' '{' { impl_common } '}'
+class_body_impls ::= 'implements' '{' { impl } '}'
 
-//  (* members of mixins - like normal but doesn't allow ctors *)
-  class_body_mixin ::= class_body_common
-                     | class_body_data
-                     | class_body_impls
 
-//  (* implements that are allowed everywhere *)
-  impl_common ::= 'class' '.' ('constructor' | 'destructor') ';'
+class_body_ctors ::= 'constructors' '{' { [ '.' ] name_ns [ '@optional' ] ';' } '}'
 
-//  (* implements specific for classes and mixins *)
 
-  impl_quals ::= '@auto' | '@empty'
-  impl_prop  ::= [ impl_quals ] [ comment ] ';'
+class_body ::= class_body_common
+           | class_body_data
+           | class_body_impls
+           | class_body_ctors
 
-  impl ::= impl_common | [ impl_quals ] [ '.' ] name_ns
-           ( '{' [ 'get' impl_prop ] [ 'set' impl_prop ] '}' | ';' [ comment ] )
 
-//  (* how an event is defined *)
-  event ::= name { ',' name } {
-            '@private' | '@protected' | '@beta' | '@hot' | '@restart' }
-            [ ':' type ] ';'
+class_body_iface ::= class_body_common
+                 | 'implements' '{' { impl_common } '}'
 
-//  (* how a part is defined *)
-  part ::= name [ '@beta' ] ':' name_ns ';' [ comment ]
 
-//  (*
-//   * Everything related to constructors, methods and properties
-//   *)
+class_body_mixin ::= class_body_common
+                 | class_body_data
+                 | class_body_impls
 
-//  (* method, like constructor but more modifiers *)
-  method ::= name { '@protected' | '@const' | '@static' | '@beta' | '@pure_virtual' }
-                 '{' [ comment ] { method_body } '}'
 
-//  (* inside of a method *)
-  method_body ::= return | 'params' '{' { param } '}'
+impl_common ::= 'class' '.' ('constructor' | 'destructor') ';'
 
-//  (* property, has accessors *)
-  property ::= '@property' name { '@protected' | '@static' | '@pure_virtual' | '@beta' } '{' { property_body } '}'
 
-//  (* property body - get/set accessors, keys, values *)
-  property_body ::= 'get' { '@pure_virtual' | '@protected' } '{' [ comment ] { return | 'keys' '{' { param_nodir } '}' | 'values' '{' { param_nodir } '}' } '}'
-                  | 'set' { '@pure_virtual' | '@protected' } '{' [ comment ] { return | 'keys' '{' { param_nodir } '}' | 'values' '{' { param_nodir } '}' } '}'
-                  | 'keys'   '{' { param_nodir } '}'
-                  | 'values' '{' { param_nodir } '}'
 
-//  (* parameter without direction - implied @in *)
-  param_nodir ::= name ':' type [ '(' expr ')' ] [ {  '@by_ref' | '@move' | '@optional' } ]
-                  ';' [ comment ]
+impl_quals ::= '@auto' | '@empty'
+impl_prop  ::= [ impl_quals ] [ comment ] ';'
 
-//  (* parameter with direction - @in/@out/@inout *)
-  param ::= [ '@in' | '@out' | '@inout' ] param_nodir
+impl ::= impl_common | [ impl_quals ] [ '.' ] name_ns
+       ( '{' [ 'get' impl_prop ] [ 'set' impl_prop ] '}' | ';' [ comment ] )
 
-  return_suffix ::=  [ '(' expr ')' ] { '@no_unused' | '@move' | '@by_ref' } ';' [ comment ]
 
-//  (* return statement - used in methods and accessors - can have a default val *)
-  return ::= 'return' ':' type return_suffix
+event ::= name { ',' name } {
+        '@private' | '@protected' | '@beta' | '@hot' | '@restart' }
+        [ ':' type ] ';'
+
+
+part ::= name [ '@beta' ] ':' name_ns ';' [ comment ]
+
+
+
+
+
+
+method ::= name { '@protected' | '@const' | '@static' | '@beta' | '@pure_virtual' }
+             '{' [ comment ] { method_body } '}'
+
+
+method_body ::= return | 'params' '{' { param } '}'
+
+
+property ::= '@property' name { '@protected' | '@static' | '@pure_virtual' | '@beta' } '{' { property_body } '}'
+
+
+property_body ::= 'get' { '@pure_virtual' | '@protected' } '{' [ comment ] { return | 'keys' '{' { param_nodir } '}' | 'values' '{' { param_nodir } '}' } '}'
+              | 'set' { '@pure_virtual' | '@protected' } '{' [ comment ] { return | 'keys' '{' { param_nodir } '}' | 'values' '{' { param_nodir } '}' } '}'
+              | 'keys'   '{' { param_nodir } '}'
+              | 'values' '{' { param_nodir } '}'
+
+
+param_nodir ::= name ':' type [ '(' expr ')' ] [ {  '@by_ref' | '@move' | '@optional' } ]
+              ';' [ comment ]
+
+
+param ::= [ '@in' | '@out' | '@inout' ] param_nodir
+
+return_suffix ::=  [ '(' expr ')' ] { '@no_unused' | '@move' | '@by_ref' } ';' [ comment ]
+
+
+return ::= 'return' ':' type return_suffix
 

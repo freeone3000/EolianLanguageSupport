@@ -5,3 +5,5 @@
 
 # Generated files
 /src/main/gen/
+/jflex-*.jar
+/gen/

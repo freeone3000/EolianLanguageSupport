@@ -1,5 +1,6 @@
 package dev.jamoo.eolian.language
 
 import com.intellij.lexer.FlexAdapter
+import generated.*
 
-class EolianLexerAdapter : FlexAdapter(EolianLexer(null))
+class EolianLexerAdapter : FlexAdapter(_EolianLexer(null))

@@ -1,17 +1,38 @@
-package org.intellij.sdk.language;
+package generated;
 
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
-import org.intellij.sdk.language.psi.SimpleTypes;
-import com.intellij.psi.TokenType;
 
+import static com.intellij.psi.TokenType.BAD_CHARACTER;
+import static com.intellij.psi.TokenType.WHITE_SPACE;
+import static generated.GeneratedTypes.*;
 %%
-%class EolianLexer
+
+%{
+  public _EolianLexer() {
+    this((java.io.Reader)null);
+  }
+%}
+
+%public
+%class _EolianLexer
 %implements FlexLexer
-%unicode
 %function advance
 %type IElementType
-%eof{ return;
-%eof}
+%unicode
+
+EOL=\R
+WHITE_SPACE=\s+
+
 
 %%
+<YYINITIAL> {
+  {WHITE_SPACE}      { return WHITE_SPACE; }
+
+  "any"              { return ANY; }
+  "error"            { return ERROR; }
+
+
+}
+
+[^] { return BAD_CHARACTER; }
