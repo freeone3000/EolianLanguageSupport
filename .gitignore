@@ -5,5 +5,8 @@
 
 # Generated files
 /src/main/gen/
-/jflex-*.jar
+
+# If using IDE-based generation
 /gen/
+/jflex-*.jar
+/idea-flex.skeleton
