@@ -21,6 +21,7 @@
                   language="Eolian"
                   extensions="eo"
         />
+        <lang.parserDefinition language="Eolian" implementationClass="dev.jamoo.eolian.language.EolianParser" />
     </extensions>
 
     <actions>
